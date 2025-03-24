@@ -43,18 +43,35 @@ const AddUser = () => {
   } 
 
   const handleAdd = async () => {
+    if (!user) return; // Ensure there's a user before adding
+  
     const chatRef = collection(db, "chats");
-    const userChatsRef = collection(db, "userchats");
-
+    const userChatsRef = doc(db, "userchats", currentUser.id);
+  
     try {
+      // Get current user's chats
+      const userChatsSnap = await getDoc(userChatsRef);
+      if (userChatsSnap.exists()) {
+        const userChatsData = userChatsSnap.data().chats || [];
+  
+        // Check if the user is already in the chat list
+        const userExists = userChatsData.some(chat => chat.receiverId === user.id);
+        if (userExists) {
+          alert("User is already in your chat list.");
+          return; // Stop execution if user already exists
+        }
+      }
+  
+      // Create a new chat if the user is not in the list
       const newChatRef = doc(chatRef);
-
+  
       await setDoc(newChatRef, {
         createdAt: serverTimestamp(),
         messages: [],
       });
-
-      await updateDoc(doc(userChatsRef, user.id), {
+  
+      // Add chat to both users' chat lists
+      await updateDoc(doc(db, "userchats", user.id), {
         chats: arrayUnion({
           chatId: newChatRef.id,
           lastMessage: "",
@@ -62,8 +79,8 @@ const AddUser = () => {
           updatedAt: Date.now(),
         }),
       });
-
-      await updateDoc(doc(userChatsRef, currentUser.id), {
+  
+      await updateDoc(userChatsRef, {
         chats: arrayUnion({
           chatId: newChatRef.id,
           lastMessage: "",
@@ -71,10 +88,13 @@ const AddUser = () => {
           updatedAt: Date.now(),
         }),
       });
+  
+      console.log("User added successfully!");
     } catch (err) {
       console.log(err);
     }
   };
+  
 
   return (
     <div className="addUser">

@@ -1,25 +1,23 @@
-
-.chatList{
+.chatList {
     flex: 1;
     overflow: scroll;
-    .search{
+    
+    .search {
         display: flex;
         align-items: center;
         gap: 20px;
         padding: 20px;
-       
 
-        .searchBar{
+        .searchBar {
             flex: 1;
-            background-color: rgba(17, 25 , 40 , 0.5);
+            background-color: rgba(17, 25, 40, 0.5);
             display: flex;
             align-items: center;
             gap: 20px;
             border-radius: 10px;
             padding: 10px;
-           
 
-            input{
+            input {
                 background-color: transparent;
                 border: none;
                 outline: none;
@@ -27,55 +25,73 @@
                 flex: 1;
             }
 
-            img{
+            img {
                 width: 20px;
                 height: 20px;
                 cursor: pointer;
             }
         }
 
-        .add{
-           width:36px ;
-           height : 36px;
-           background-color: rgba(17, 25 , 40 , 0.5);
-           padding: 10;
-           border-radius: 10px;
-           cursor: pointer;
+        .add {
+            width: 36px;
+            height: 36px;
+            background-color: rgba(17, 25, 40, 0.5);
+            padding: 10;
+            border-radius: 10px;
+            cursor: pointer;
         }
     }
 
-    .item{
+    .item {
         display: flex;
         align-items: center;
+        justify-content: space-between; /* Added for proper alignment */
         gap: 20px;
         padding: 20px;
         cursor: pointer;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        
-        img{
+        position: relative;
+
+        img {
             width: 50px;
             height: 50px;
             border-radius: 50%;
             object-fit: cover;
         }
 
-        .texts{
+        .texts {
             display: flex;
             flex-direction: column;
-            gap:10px;
+            gap: 10px;
+            flex: 1;
 
-            span{
+            span {
                 font-weight: 500;
             }
 
-            p{
+            p {
                 font-size: 14px;
                 font-weight: 300;
             }
         }
+
+        /* Delete button styling */
+        .deleteBtn {
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .deleteBtn:hover {
+            background-color: darkred;
+        }
     }
 }
+
 .chatList::-webkit-scrollbar {
     display: none;
-  }
-  
+}

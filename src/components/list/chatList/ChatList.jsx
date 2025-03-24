@@ -2,10 +2,9 @@ import { useEffect, useState } from "react";
 import "./chatList.css";
 import AddUser from "./addUser/addUser";
 import { useUserStore } from "../../../lib/userStore";
-import { doc, getDoc, onSnapshot, updateDoc } from "firebase/firestore";
+import { doc, getDoc, onSnapshot, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { useChatStore } from "../../../lib/chatStore";
-
 
 const ChatList = () => {
   const [chats, setChats] = useState([]);
@@ -32,7 +31,7 @@ const ChatList = () => {
 
         const chatData = await Promise.all(promises);
 
-        setChats(chatData.sort((a, b) => b.updatedAt - a.updatedAt)); 
+        setChats(chatData.sort((a, b) => b.updatedAt - a.updatedAt));
       }
     );
 
@@ -65,6 +64,34 @@ const ChatList = () => {
     }
   };
 
+  const handleDelete = async (chatId, receiverId) => {
+    const userChatsRef = doc(db, "userchats", currentUser.id);
+    const receiverChatsRef = doc(db, "userchats", receiverId);
+    const chatRef = doc(db, "chats", chatId);
+
+    try {
+      const userChatsSnap = await getDoc(userChatsRef);
+      if (userChatsSnap.exists()) {
+        const userChats = userChatsSnap.data().chats || [];
+        const updatedUserChats = userChats.filter(chat => chat.chatId !== chatId);
+        await updateDoc(userChatsRef, { chats: updatedUserChats });
+      }
+
+      const receiverChatsSnap = await getDoc(receiverChatsRef);
+      if (receiverChatsSnap.exists()) {
+        const receiverChats = receiverChatsSnap.data().chats || [];
+        const updatedReceiverChats = receiverChats.filter(chat => chat.chatId !== chatId);
+        await updateDoc(receiverChatsRef, { chats: updatedReceiverChats });
+      }
+
+      await deleteDoc(chatRef);
+
+      setChats(prev => prev.filter(chat => chat.chatId !== chatId));
+    } catch (err) {
+      console.log("Error deleting chat:", err);
+    }
+  };
+
   const filteredChats = chats.filter((c) =>
     c.user.username.toLowerCase().includes(input.toLowerCase())
   );
@@ -89,29 +116,24 @@ const ChatList = () => {
       </div>
       {filteredChats.map((chat) => (
         <div
-          className="item"
-          key={chat.chatId}
-          onClick={() => handleSelect(chat)}
-          style={{
-            backgroundColor: chat?.isSeen ? "transparent" : "#5183fe",
-          }}
-        >
-          <img
-            src={
-              chat.user.blocked.includes(currentUser.id)
-                ? "./avatar.png"
-                : "./avatar.png"
-            }
-            alt=""
-          />
+        className="item"
+        key={chat.chatId}
+        onClick={(e) => {
+          if (!e.target.classList.contains("deleteBtn")) {
+            handleSelect(chat);
+          }
+        }}
+        style={{
+          backgroundColor: chat?.isSeen ? "transparent" : "#5183fe",
+        }}
+      >
+      
+          <img src={"./avatar.png"} alt="" />
           <div className="texts">
-            <span>
-              {chat.user.blocked.includes(currentUser.id)
-                ? "User"
-                : chat.user.username}
-            </span>
+            <span>{chat.user.blocked.includes(currentUser.id) ? "User" : chat.user.username}</span>
             <p>{chat.lastMessage}</p>
           </div>
+          <button className="delete-btn" onClick={() => handleDelete(chat.chatId, chat.user.id)}>🗑️</button>
         </div>
       ))}
 
